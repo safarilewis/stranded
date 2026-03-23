@@ -1,0 +1,76 @@
+export const DESTINATIONS = [
+  {
+    slug: "sky",
+    name: "Sky",
+    emoji: "☁️",
+    tagline: "Fly like a bird",
+    color: "#5b7fa6",
+    bgGradient: "linear-gradient(180deg, #1a2a4a 0%, #3a5a8a 30%, #7aaad4 60%, #c4dff0 85%, #f0e8d8 100%)",
+    particleType: "clouds",
+    videoUrl: "",
+    ambientAudioUrl: "",
+    isGallery: false,
+    prompts: [
+      { text: "Let's imagine you are a bird.", voiceoverUrl: "" },
+      { text: "You are about to take flight.", voiceoverUrl: "" },
+      { text: "Feel the wind beneath your wings as you lift off the ground.", voiceoverUrl: "" },
+      { text: "Below you, everything gets smaller. The worries, the deadlines, the noise.", voiceoverUrl: "" },
+      { text: "Where would you go if you could fly anywhere?", voiceoverUrl: "" },
+      { text: "There's no destination. Just the feeling of being free.", voiceoverUrl: "" },
+    ],
+    voices: [],
+    themeMedia: {
+      homesickness: {
+        videoUrl: "https://pub-11735088edf941b39e769dc13719a0a1.r2.dev/44123c8a-f098-4cbb-89b8-9d17a6540300.MP4",
+      },
+    },
+  },
+  {
+    slug: "gallery",
+    name: "Gallery",
+    emoji: "🖼️",
+    tagline: "Words from those who've been there",
+    color: "#8a6b5e",
+    bgGradient: "linear-gradient(135deg, #2a1f1a 0%, #4a3528 30%, #8a6b5e 60%, #c4a892 100%)",
+    particleType: "none",
+    videoUrl: "",
+    ambientAudioUrl: "",
+    isGallery: true,
+    prompts: [],
+    voices: [
+      { text: "The loneliness hit me hardest in month two. But it passed. I promise it passes.", attribution: "Class of 2027", videoUrl: "" },
+      { text: "I thought everyone had it figured out except me. Turns out, nobody did.", attribution: "Class of 2026", videoUrl: "" },
+      { text: "Moving cities every semester felt impossible at first. Now it's my favorite part.", attribution: "Class of 2025", videoUrl: "" },
+      { text: "I didn't ask for help until I was drowning. You don't have to wait that long.", attribution: "Class of 2027", videoUrl: "" },
+      { text: "The hardest thing was letting go of who I was before. The best thing was finding who I became.", attribution: "Class of 2026", videoUrl: "" },
+      { text: "Some days I just sat in a café alone and cried. And that was okay.", attribution: "Class of 2028", videoUrl: "" },
+      { text: "Your path doesn't have to look like anyone else's. That's the whole point of being here.", attribution: "Class of 2025", videoUrl: "" },
+      { text: "Berlin was lonely. Buenos Aires healed me. San Francisco challenged me. Every city taught me something.", attribution: "Class of 2026", videoUrl: "" },
+    ],
+    themeMedia: {},
+  },
+];
+
+export const THEMES = [
+  {
+    slug: "homesickness",
+    name: "Homesickness",
+    emoji: "🏡",
+    tagline: "Feel held while missing home",
+    description: "A gentler space for the ache of missing what is familiar.",
+    ambientAudioUrl: "https://cdn.pixabay.com/download/audio/2022/10/24/audio_946efc1b85.mp3?filename=ambient-meditation-118429.mp3",
+  },
+  {
+    slug: "gallery",
+    name: "Gallery",
+    emoji: "🖼️",
+    tagline: "Advice from other people",
+    description: "Words from people who have already been through this kind of season.",
+    ambientAudioUrl: "",
+    ambientLoopSegment: {
+      mediaUrl: "https://pub-11735088edf941b39e769dc13719a0a1.r2.dev/44123c8a-f098-4cbb-89b8-9d17a6540300.MP4",
+      startTime: 42,
+      endTime: 114,
+    },
+  },
+];

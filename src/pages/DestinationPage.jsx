@@ -295,15 +295,6 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
     navigate(isGalleryTheme ? "/map" : `/destination/${destination.slug}`);
   };
 
-  const handleDebugSkipToEnd = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    stopVoiceover();
-    setStarted(true);
-    setVideoEnded(true);
-  };
-
   const handleSubmitQuote = async (event) => {
     event.preventDefault();
 
@@ -475,31 +466,6 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
           {destination.name} · {theme.name}
         </p>
       </div>
-
-      {!isGalleryTheme && theme.slug === "homesickness" && !showSubmissionCard && (
-        <button
-          type="button"
-          onClick={handleDebugSkipToEnd}
-          style={{
-            position: "absolute",
-            right: "28px",
-            bottom: "92px",
-            zIndex: 20,
-            borderRadius: "999px",
-            border: "1px solid rgba(255,255,255,0.14)",
-            background: "rgba(0,0,0,0.32)",
-            color: "rgba(255,255,255,0.65)",
-            fontFamily: "var(--font-sans)",
-            fontSize: "11px",
-            letterSpacing: "1.2px",
-            textTransform: "uppercase",
-            padding: "10px 14px",
-            backdropFilter: "blur(10px)",
-          }}
-        >
-          Debug: Skip to End
-        </button>
-      )}
 
       <MuteButton muted={muted} onToggle={toggleMute} />
 

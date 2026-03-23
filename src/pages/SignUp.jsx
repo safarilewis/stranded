@@ -79,7 +79,7 @@ export default function SignUp() {
         }}
       >
         <p className="label-upper" style={{ marginBottom: "20px" }}>
-          Stranded Vacationers
+          Stranded?
         </p>
         <h1 style={{ fontSize: "clamp(30px, 5vw, 42px)", fontStyle: "italic", marginBottom: "14px" }}>
           Create account

@@ -72,7 +72,7 @@ export default function Welcome() {
         }}
       >
         <p className="label-upper" style={{ marginBottom: "32px" }}>
-          Stranded Vacationers
+          Stranded?
         </p>
 
         <h1

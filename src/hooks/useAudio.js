@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+const AMBIENT_VOLUME = 0.18;
+const DUCKED_AMBIENT_VOLUME = 0.06;
+
 export default function useAudio() {
   const ambientRef = useRef(null);
   const voiceoverRef = useRef(null);
@@ -53,7 +56,7 @@ export default function useAudio() {
       audio.play().catch(() => {
         // Autoplay blocked
       });
-      fadeVolume(audio, 0.3, 500);
+      fadeVolume(audio, AMBIENT_VOLUME, 500);
     } catch {
       // Handle error silently
     }
@@ -85,7 +88,7 @@ export default function useAudio() {
     try {
       // Duck ambient volume
       if (ambientRef.current) {
-        fadeVolume(ambientRef.current, 0.1, 200);
+        fadeVolume(ambientRef.current, DUCKED_AMBIENT_VOLUME, 200);
       }
 
       const audio = new Audio(url);
@@ -97,7 +100,7 @@ export default function useAudio() {
       audio.addEventListener("ended", () => {
         setVoiceoverPlaying(false);
         if (ambientRef.current) {
-          fadeVolume(ambientRef.current, 0.3, 300);
+          fadeVolume(ambientRef.current, AMBIENT_VOLUME, 300);
         }
         voiceoverRef.current = null;
         onEnd();
@@ -107,7 +110,7 @@ export default function useAudio() {
         // Autoplay blocked
         setVoiceoverPlaying(false);
         if (ambientRef.current) {
-          fadeVolume(ambientRef.current, 0.3, 300);
+          fadeVolume(ambientRef.current, AMBIENT_VOLUME, 300);
         }
         voiceoverRef.current = null;
         onEnd();
@@ -125,7 +128,7 @@ export default function useAudio() {
     }
     setVoiceoverPlaying(false);
     if (ambientRef.current) {
-      fadeVolume(ambientRef.current, 0.3, 200);
+      fadeVolume(ambientRef.current, AMBIENT_VOLUME, 200);
     }
   }, [fadeVolume]);
 

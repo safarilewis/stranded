@@ -6,7 +6,7 @@ import MapPage from "./pages/MapPage";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ThemePage from "./pages/ThemePage";
-import Welcome from "./pages/Welcome";
+import Welcome from "./pages/Welcome.jsx";
 
 export default function App() {
   return (

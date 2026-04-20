@@ -1,5 +1,44 @@
 export const DESTINATIONS = [
   {
+    slug: "ocean",
+    name: "Ocean",
+    emoji: "🌊",
+    tagline: "Let the tide carry some of it for you",
+    color: "#3a78a1",
+    bgGradient: "linear-gradient(180deg, #061724 0%, #0d3146 26%, #15607e 58%, #72b6cb 82%, #d8edf4 100%)",
+    particleType: "bubbles",
+    voiceInstructions:
+      "Use a hushed, fluid voice with soft breaths between sentences, like someone speaking near the shoreline at dusk.",
+    videoUrl: "",
+    ambientAudioUrl: "",
+    isGallery: false,
+    prompts: [
+      {
+        text: "You are standing at the edge of a quiet ocean.",
+        voiceoverUrl: "",
+      },
+      { text: "The water keeps arriving, and it keeps letting go.", voiceoverUrl: "" },
+      { text: "You do not have to hold everything at once here.", voiceoverUrl: "" },
+      { text: "Let one thought drift out with the tide.", voiceoverUrl: "" },
+      { text: "Let the next wave bring back only what you still need.", voiceoverUrl: "" },
+      { text: "Stay as long as it helps.", voiceoverUrl: "" },
+    ],
+    voices: [],
+    themeMedia: {
+      homesickness: {
+        voiceInstructions:
+          "Sound especially tender and comforting here, with a slower pace and gentle emotional warmth.",
+        prompts: [
+          { text: "Homesickness can feel like being pulled by a current in two directions.", voiceoverUrl: "" },
+          { text: "One part of you is here. Another part still reaches for home.", voiceoverUrl: "" },
+          { text: "Imagine the tide touching both places at once, where you are and what you miss.", voiceoverUrl: "" },
+          { text: "Nothing is wrong with you for longing.", voiceoverUrl: "" },
+          { text: "Breathe in. Let the ocean hold what feels too heavy to name.", voiceoverUrl: "" },
+        ],
+      },
+    },
+  },
+  {
     slug: "sky",
     name: "Sky",
     emoji: "☁️",
@@ -7,6 +46,8 @@ export const DESTINATIONS = [
     color: "#5b7fa6",
     bgGradient: "linear-gradient(180deg, #1a2a4a 0%, #3a5a8a 30%, #7aaad4 60%, #c4dff0 85%, #f0e8d8 100%)",
     particleType: "clouds",
+    voiceInstructions:
+      "Use a light, airy tone with a little lift in the cadence, as if the words have space to drift.",
     videoUrl: "",
     ambientAudioUrl: "",
     isGallery: false,
@@ -22,6 +63,40 @@ export const DESTINATIONS = [
     themeMedia: {
       homesickness: {
         videoUrl: "https://pub-11735088edf941b39e769dc13719a0a1.r2.dev/44123c8a-f098-4cbb-89b8-9d17a6540300.MP4",
+      },
+    },
+  },
+  {
+    slug: "forest",
+    name: "Forest",
+    emoji: "🌲",
+    tagline: "Find cover beneath something steady",
+    color: "#4b6a47",
+    bgGradient: "linear-gradient(180deg, #07140d 0%, #102719 28%, #274a31 58%, #55795a 82%, #c8d8bb 100%)",
+    particleType: "none",
+    voiceInstructions:
+      "Use a grounded, steady, low-pressure voice that feels sheltered, patient, and calm.",
+    videoUrl: "",
+    ambientAudioUrl: "",
+    isGallery: false,
+    prompts: [
+      { text: "You step into a forest where the air is cooler and slower.", voiceoverUrl: "" },
+      { text: "The trees do not rush. They simply keep standing.", voiceoverUrl: "" },
+      { text: "Notice the ground under you, solid and patient.", voiceoverUrl: "" },
+      { text: "You are allowed to be quiet here.", voiceoverUrl: "" },
+      { text: "You are allowed to take up space here too.", voiceoverUrl: "" },
+      { text: "Rest for a moment beneath what is rooted.", voiceoverUrl: "" },
+    ],
+    voices: [],
+    themeMedia: {
+      homesickness: {
+        prompts: [
+          { text: "Missing home can make everything feel less familiar than it should.", voiceoverUrl: "" },
+          { text: "Let this forest become your borrowed shelter for now.", voiceoverUrl: "" },
+          { text: "Picture each tree holding one memory that still belongs to you.", voiceoverUrl: "" },
+          { text: "Home is not gone. It is part of what you carry.", voiceoverUrl: "" },
+          { text: "Stand still long enough to feel that truth land.", voiceoverUrl: "" },
+        ],
       },
     },
   },

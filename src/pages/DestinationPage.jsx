@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DESTINATIONS, THEMES } from "../config/destinations";
 import MuteButton from "../components/MuteButton";
@@ -7,6 +7,8 @@ import VideoBackground from "../components/VideoBackground";
 import useAudio from "../hooks/useAudio";
 import useAuth from "../hooks/useAuth";
 import { supabase, supabaseConfigured } from "../lib/supabase";
+
+const BACKGROUND_MEDIA_VOLUME = 0.16;
 
 function buildFallbackQuotes(voices) {
   return voices.map((voice, index) => ({
@@ -21,6 +23,7 @@ export default function DestinationPage() {
   const navigate = useNavigate();
   const destination = DESTINATIONS.find((entry) => entry.slug === slug);
   const theme = THEMES.find((entry) => entry.slug === themeSlug);
+  const galleryTheme = THEMES.find((entry) => entry.slug === "gallery");
   const galleryDestination = DESTINATIONS.find((entry) => entry.slug === "gallery");
 
   useEffect(() => {
@@ -38,13 +41,14 @@ export default function DestinationPage() {
       key={`${slug}-${themeSlug}`}
       destination={destination}
       theme={theme}
+      galleryTheme={galleryTheme}
       galleryDestination={galleryDestination}
       navigate={navigate}
     />
   );
 }
 
-function DestinationExperience({ destination, theme, galleryDestination, navigate }) {
+function DestinationExperience({ destination, theme, galleryTheme, galleryDestination, navigate }) {
   const audio = useAudio();
   const { user } = useAuth();
   const {
@@ -54,10 +58,10 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
     stopVoiceover,
     stopAll,
     toggleMute,
+    voiceoverPlaying,
   } = audio;
 
   const [started, setStarted] = useState(theme.slug === "gallery");
-  const [promptIndex, setPromptIndex] = useState(0);
   const [fadeKey, setFadeKey] = useState(0);
   const [videoEnded, setVideoEnded] = useState(false);
   const [galleryQuotes, setGalleryQuotes] = useState(() => buildFallbackQuotes(galleryDestination?.voices ?? []));
@@ -69,6 +73,9 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
 
   const timeoutRef = useRef(null);
   const galleryMediaRef = useRef(null);
+  const narrationBackgroundMediaRef = useRef(null);
+  const narrationCacheRef = useRef(new Map());
+  const narrationRequestRef = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -76,6 +83,9 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
+      narrationRequestRef.current += 1;
+      narrationCacheRef.current.forEach((url) => URL.revokeObjectURL(url));
+      narrationCacheRef.current.clear();
     };
   }, [stopAll]);
 
@@ -89,11 +99,29 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
   const configuredAmbientAudioUrl =
     activeThemeMedia.ambientAudioUrl || theme?.ambientAudioUrl || destination?.ambientAudioUrl;
   const galleryLoopSegment = isGalleryTheme ? theme?.ambientLoopSegment ?? null : null;
+  const narrationBackgroundLoopSegment = !isGalleryTheme ? galleryTheme?.ambientLoopSegment ?? null : null;
   const activePrompts = activeThemeMedia.prompts || destination?.prompts || [];
+  const activeVoiceInstructions =
+    activeThemeMedia.voiceInstructions ||
+    destination?.voiceInstructions ||
+    theme?.voiceInstructions ||
+    "";
   const hideOverlayScript = Boolean(activeVideoUrl) && !isGalleryTheme;
   const activeAmbientAudioUrl = isGalleryTheme ? configuredAmbientAudioUrl : hideOverlayScript ? "" : configuredAmbientAudioUrl;
+  const narrationBackgroundAudioUrl =
+    !isGalleryTheme && !hideOverlayScript ? galleryTheme?.ambientAudioUrl || activeAmbientAudioUrl : "";
   const currentQuote = galleryQuotes[galleryIndex] ?? fallbackQuotes[0];
   const showGalleryPlayer = isGalleryTheme && Boolean(galleryLoopSegment?.mediaUrl || activeAmbientAudioUrl);
+  const shouldUseNarrationBackgroundPlayer =
+    !isGalleryTheme &&
+    !hideOverlayScript &&
+    Boolean(narrationBackgroundLoopSegment?.mediaUrl || narrationBackgroundAudioUrl);
+  const showNarrationBackgroundPlayer =
+    started && shouldUseNarrationBackgroundPlayer;
+  const combinedNarrationText = useMemo(
+    () => activePrompts.map((prompt) => prompt.text?.trim()).filter(Boolean).join("\n\n"),
+    [activePrompts],
+  );
 
   useEffect(() => {
     if (!isGalleryTheme) {
@@ -164,7 +192,7 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
 
     const mediaEl = galleryMediaRef.current;
     mediaEl.muted = muted;
-    mediaEl.volume = 1;
+    mediaEl.volume = BACKGROUND_MEDIA_VOLUME;
 
     const startTime = galleryLoopSegment?.startTime ?? 0;
     const endTime = galleryLoopSegment?.endTime ?? Infinity;
@@ -236,55 +264,169 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
     };
   }, [activeAmbientAudioUrl, galleryLoopSegment, isGalleryTheme, muted]);
 
-  const advancePrompt = (index) => {
-    setPromptIndex(index);
-    setFadeKey((prev) => prev + 1);
+  useEffect(() => {
+    if (
+      isGalleryTheme ||
+      !showNarrationBackgroundPlayer ||
+      !narrationBackgroundMediaRef.current ||
+      (!narrationBackgroundLoopSegment?.mediaUrl && !narrationBackgroundAudioUrl)
+    ) {
+      return undefined;
+    }
 
-    if (index >= activePrompts.length) {
+    const mediaEl = narrationBackgroundMediaRef.current;
+    mediaEl.muted = muted;
+    mediaEl.volume = BACKGROUND_MEDIA_VOLUME;
+
+    const startTime = narrationBackgroundLoopSegment?.startTime ?? 0;
+    const endTime = narrationBackgroundLoopSegment?.endTime ?? Infinity;
+
+    let interactionHandler;
+    let metadataHandler;
+    let timeUpdateHandler;
+
+    const tryPlay = () => {
+      const playAttempt = mediaEl.play();
+
+      if (playAttempt && typeof playAttempt.catch === "function") {
+        playAttempt.catch(() => {
+          if (interactionHandler) {
+            return;
+          }
+
+          interactionHandler = () => {
+            mediaEl.play().catch(() => {});
+            window.removeEventListener("pointerdown", interactionHandler);
+            window.removeEventListener("keydown", interactionHandler);
+          };
+
+          window.addEventListener("pointerdown", interactionHandler, { once: true });
+          window.addEventListener("keydown", interactionHandler, { once: true });
+        });
+      }
+    };
+
+    if (narrationBackgroundLoopSegment?.mediaUrl) {
+      metadataHandler = () => {
+        if (Number.isFinite(startTime)) {
+          mediaEl.currentTime = startTime;
+        }
+      };
+
+      timeUpdateHandler = () => {
+        if (mediaEl.currentTime >= endTime) {
+          mediaEl.currentTime = startTime;
+          mediaEl.play().catch(() => {});
+        }
+      };
+
+      mediaEl.addEventListener("loadedmetadata", metadataHandler);
+      mediaEl.addEventListener("timeupdate", timeUpdateHandler);
+
+      if (mediaEl.readyState >= 1 && Number.isFinite(startTime)) {
+        mediaEl.currentTime = startTime;
+      }
+    }
+
+    tryPlay();
+
+    return () => {
+      if (interactionHandler) {
+        window.removeEventListener("pointerdown", interactionHandler);
+        window.removeEventListener("keydown", interactionHandler);
+      }
+
+      if (metadataHandler) {
+        mediaEl.removeEventListener("loadedmetadata", metadataHandler);
+      }
+
+      if (timeUpdateHandler) {
+        mediaEl.removeEventListener("timeupdate", timeUpdateHandler);
+      }
+
+      mediaEl.pause();
+    };
+  }, [
+    isGalleryTheme,
+    muted,
+    narrationBackgroundAudioUrl,
+    narrationBackgroundLoopSegment,
+    showNarrationBackgroundPlayer,
+  ]);
+
+  const fetchNarrationUrl = useCallback(async ({ text, voiceInstructions }) => {
+    const cacheKey = `${destination.slug}:${theme.slug}:${text}:${voiceInstructions || ""}`;
+    const cachedUrl = narrationCacheRef.current.get(cacheKey);
+
+    if (cachedUrl) {
+      return cachedUrl;
+    }
+
+    const response = await fetch("/api/narrate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text,
+        destinationName: destination.name,
+        themeName: theme.name,
+        voiceInstructions,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Narration request failed.");
+    }
+
+    const audioBlob = await response.blob();
+    const objectUrl = URL.createObjectURL(audioBlob);
+    narrationCacheRef.current.set(cacheKey, objectUrl);
+    return objectUrl;
+  }, [destination.name, destination.slug, theme.name, theme.slug]);
+
+  const startContinuousNarration = useCallback(() => {
+    if (!combinedNarrationText) {
       return;
     }
 
-    const prompt = activePrompts[index];
+    setFadeKey((prev) => prev + 1);
+    const requestId = ++narrationRequestRef.current;
 
-    if (prompt.voiceoverUrl) {
-      playVoiceover(prompt.voiceoverUrl, () => {
-        if (index < activePrompts.length - 1) {
-          timeoutRef.current = window.setTimeout(() => {
-            advancePrompt(index + 1);
-          }, 1500);
+    fetchNarrationUrl({
+      text: combinedNarrationText,
+      voiceInstructions: activeVoiceInstructions,
+    })
+      .then((generatedUrl) => {
+        if (requestId !== narrationRequestRef.current) {
+          return;
+        }
+
+        playVoiceover(generatedUrl, () => {});
+      })
+      .catch(() => {
+        if (requestId !== narrationRequestRef.current) {
+          return;
         }
       });
-      return;
-    }
-
-    if (index < activePrompts.length - 1) {
-      timeoutRef.current = window.setTimeout(() => {
-        advancePrompt(index + 1);
-      }, 5000);
-    }
-  };
+  }, [activeVoiceInstructions, combinedNarrationText, fetchNarrationUrl, playVoiceover]);
 
   const startExperience = () => {
     setStarted(true);
     setVideoEnded(false);
-    if (!isGalleryTheme) {
+    if (!isGalleryTheme && !shouldUseNarrationBackgroundPlayer) {
       playAmbient(activeAmbientAudioUrl);
     }
-    setPromptIndex(0);
 
     if (!isGalleryTheme && !hideOverlayScript) {
-      advancePrompt(0);
+      startContinuousNarration();
     }
   };
 
-  const handleNextPrompt = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+  const handleReplayNarration = () => {
+    narrationRequestRef.current += 1;
     stopVoiceover();
-    if (promptIndex < activePrompts.length - 1) {
-      advancePrompt(promptIndex + 1);
-    }
+    startContinuousNarration();
   };
 
   const handleReturnToThemes = () => {
@@ -292,6 +434,7 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    narrationRequestRef.current += 1;
     navigate(isGalleryTheme ? "/map" : `/destination/${destination.slug}`);
   };
 
@@ -391,26 +534,27 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
             {theme.tagline}
           </p>
 
-          <p
-            style={{
-              fontSize: "16px",
-              color: "rgba(255,255,255,0.4)",
-              lineHeight: 1.7,
+            <p
+              style={{
+                fontSize: "16px",
+                color: "rgba(255,255,255,0.4)",
+                lineHeight: 1.7,
               marginBottom: "32px",
             }}
           >
             {theme.description}
           </p>
 
-          <p
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: "13px",
-              color: "rgba(255,255,255,0.25)",
-              marginBottom: "44px",
-            }}
-          >
+            <p
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: "13px",
+                color: "rgba(255,255,255,0.25)",
+                marginBottom: "44px",
+              }}
+            >
             Press begin to open this space. If a video exists for this theme, it will play with its audio.
+            AI-generated narration will blend the reflection into one continuous meditation track.
           </p>
 
           <button className="gentle-btn" onClick={startExperience}>
@@ -469,6 +613,40 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
 
       <MuteButton muted={muted} onToggle={toggleMute} />
 
+      {showNarrationBackgroundPlayer && (
+        narrationBackgroundLoopSegment?.mediaUrl ? (
+          <video
+            autoPlay
+            ref={narrationBackgroundMediaRef}
+            muted={muted}
+            playsInline
+            preload="auto"
+            src={narrationBackgroundLoopSegment.mediaUrl}
+            style={{
+              width: 0,
+              height: 0,
+              opacity: 0,
+              pointerEvents: "none",
+            }}
+          />
+        ) : (
+          <audio
+            autoPlay
+            ref={narrationBackgroundMediaRef}
+            loop
+            muted={muted}
+            preload="auto"
+            src={narrationBackgroundAudioUrl}
+            style={{
+              width: 0,
+              height: 0,
+              opacity: 0,
+              pointerEvents: "none",
+            }}
+          />
+        )
+      )}
+
       <div
         style={{
           position: "absolute",
@@ -518,57 +696,52 @@ function DestinationExperience({ destination, theme, galleryDestination, navigat
               {theme.name}
             </p>
 
-            <p
+            <div
               key={fadeKey}
               style={{
-                fontSize: "clamp(22px, 4.5vw, 34px)",
-                fontStyle: "italic",
+                fontSize: "clamp(20px, 3.4vw, 28px)",
                 color: "rgba(255,255,255,0.85)",
                 lineHeight: 1.6,
                 textShadow: "0 2px 20px rgba(0,0,0,0.5)",
                 marginBottom: "48px",
-                animation: activePrompts[promptIndex]?.voiceoverUrl
-                  ? "fadeIn 0.8s ease"
-                  : "fadePrompt 5s ease forwards",
+                animation: "fadeIn 0.8s ease",
+                whiteSpace: "pre-line",
               }}
             >
-              {activePrompts[promptIndex]?.text || theme.description}
+              {combinedNarrationText || theme.description}
+            </div>
+
+            <p
+              style={{
+                marginBottom: "34px",
+                fontFamily: "var(--font-sans)",
+                fontSize: "13px",
+                color: "rgba(255,255,255,0.38)",
+              }}
+            >
+              {voiceoverPlaying ? "Meditation narration is playing." : "Meditation narration is ready to replay."}
             </p>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "6px",
-                marginBottom: "48px",
-              }}
-            >
-              {activePrompts.map((_, index) => (
-                <div
-                  key={index}
-                  style={{
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    background:
-                      index <= promptIndex ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.12)",
-                    transition: "background 0.5s ease",
-                  }}
-                />
-              ))}
+            <div style={{ display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
+              <button className="gentle-btn" onClick={handleReplayNarration}>
+                Replay narration
+              </button>
+              <button className="gentle-btn" onClick={handleReturnToThemes}>
+                Return to Themes
+              </button>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              {promptIndex < activePrompts.length - 1 ? (
-                <button className="gentle-btn" onClick={handleNextPrompt}>
-                  Next
-                </button>
-              ) : (
-                <button className="gentle-btn" onClick={handleReturnToThemes}>
-                  Return to Themes
-                </button>
-              )}
-            </div>
+            <p
+              style={{
+                marginTop: "18px",
+                fontFamily: "var(--font-sans)",
+                fontSize: "12px",
+                letterSpacing: "0.4px",
+                color: "rgba(255,255,255,0.32)",
+              }}
+            >
+              Narration voice is AI-generated.
+            </p>
           </div>
         )}
 

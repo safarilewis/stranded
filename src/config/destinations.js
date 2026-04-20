@@ -4,6 +4,8 @@ export const DESTINATIONS = [
     name: "Ocean",
     emoji: "🌊",
     tagline: "Let the tide carry some of it for you",
+    storyTitle: "Chapter I · The Tide Gate",
+    storyHook: "The sea is the first place the island sends you when your thoughts are too heavy to carry inland.",
     color: "#3a78a1",
     bgGradient: "linear-gradient(180deg, #061724 0%, #0d3146 26%, #15607e 58%, #72b6cb 82%, #d8edf4 100%)",
     particleType: "bubbles",
@@ -26,6 +28,7 @@ export const DESTINATIONS = [
     voices: [],
     themeMedia: {
       homesickness: {
+        introLine: "The tide gate opens when longing feels bigger than language.",
         voiceInstructions:
           "Sound especially tender and comforting here, with a slower pace and gentle emotional warmth.",
         prompts: [
@@ -43,6 +46,8 @@ export const DESTINATIONS = [
     name: "Sky",
     emoji: "☁️",
     tagline: "Fly like a bird",
+    storyTitle: "Chapter II · The High Passage",
+    storyHook: "When the ground feels too close, the island lifts you upward to see your life from a gentler distance.",
     color: "#5b7fa6",
     bgGradient: "linear-gradient(180deg, #1a2a4a 0%, #3a5a8a 30%, #7aaad4 60%, #c4dff0 85%, #f0e8d8 100%)",
     particleType: "clouds",
@@ -62,6 +67,7 @@ export const DESTINATIONS = [
     voices: [],
     themeMedia: {
       homesickness: {
+        introLine: "Some aches can only be understood once you rise above them.",
         videoUrl: "https://pub-11735088edf941b39e769dc13719a0a1.r2.dev/44123c8a-f098-4cbb-89b8-9d17a6540300.MP4",
       },
     },
@@ -71,6 +77,8 @@ export const DESTINATIONS = [
     name: "Forest",
     emoji: "🌲",
     tagline: "Find cover beneath something steady",
+    storyTitle: "Chapter III · The Rooted Hollow",
+    storyHook: "The forest waits deeper in the island, where quiet things help you remember what still holds.",
     color: "#4b6a47",
     bgGradient: "linear-gradient(180deg, #07140d 0%, #102719 28%, #274a31 58%, #55795a 82%, #c8d8bb 100%)",
     particleType: "none",
@@ -90,6 +98,7 @@ export const DESTINATIONS = [
     voices: [],
     themeMedia: {
       homesickness: {
+        introLine: "The hollow answers homesickness by teaching your body where shelter can still be found.",
         prompts: [
           { text: "Missing home can make everything feel less familiar than it should.", voiceoverUrl: "" },
           { text: "Let this forest become your borrowed shelter for now.", voiceoverUrl: "" },
@@ -105,6 +114,8 @@ export const DESTINATIONS = [
     name: "Gallery",
     emoji: "🖼️",
     tagline: "Words from those who've been there",
+    storyTitle: "The Lantern Archive",
+    storyHook: "Beyond the paths sits a room of voices left behind by travelers who made it through their own weather.",
     color: "#8a6b5e",
     bgGradient: "linear-gradient(135deg, #2a1f1a 0%, #4a3528 30%, #8a6b5e 60%, #c4a892 100%)",
     particleType: "none",
@@ -133,6 +144,7 @@ export const THEMES = [
     emoji: "🏡",
     tagline: "Feel held while missing home",
     description: "A gentler space for the ache of missing what is familiar.",
+    storyPrompt: "Tonight's quest asks you to cross the island while carrying the shape of home.",
     ambientAudioUrl: "https://cdn.pixabay.com/download/audio/2022/10/24/audio_946efc1b85.mp3?filename=ambient-meditation-118429.mp3",
   },
   {
@@ -141,6 +153,7 @@ export const THEMES = [
     emoji: "🖼️",
     tagline: "Advice from other people",
     description: "Words from people who have already been through this kind of season.",
+    storyPrompt: "This is where old travelers leave lanterns for the ones who arrive after them.",
     ambientAudioUrl: "",
     ambientLoopSegment: {
       mediaUrl: "https://pub-11735088edf941b39e769dc13719a0a1.r2.dev/44123c8a-f098-4cbb-89b8-9d17a6540300.MP4",

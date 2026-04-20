@@ -9,6 +9,10 @@ import useAuth from "../hooks/useAuth";
 import { supabase, supabaseConfigured } from "../lib/supabase";
 
 const BACKGROUND_MEDIA_VOLUME = 0.16;
+const GALLERY_BATCH_SIZE = 6;
+const SESSION_DURATION_MS = 2 * 60 * 1000;
+const galleryNoteRotations = ["rotate(-1.8deg)", "rotate(1.3deg)", "rotate(-0.9deg)", "rotate(1.7deg)", "rotate(-1.1deg)", "rotate(0.8deg)"];
+const galleryNoteColors = ["#f5e8bf", "#efddb5", "#f0e4c8", "#edd5a8", "#f2e9cf", "#e9d7b2"];
 
 function buildFallbackQuotes(voices) {
   return voices.map((voice, index) => ({
@@ -64,8 +68,10 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
   const [started, setStarted] = useState(theme.slug === "gallery");
   const [fadeKey, setFadeKey] = useState(0);
   const [videoEnded, setVideoEnded] = useState(false);
+  const [sessionComplete, setSessionComplete] = useState(false);
+  const [sessionRunId, setSessionRunId] = useState(0);
   const [galleryQuotes, setGalleryQuotes] = useState(() => buildFallbackQuotes(galleryDestination?.voices ?? []));
-  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [galleryBatchStart, setGalleryBatchStart] = useState(0);
   const [galleryLoading, setGalleryLoading] = useState(false);
   const [submissionText, setSubmissionText] = useState("");
   const [submissionError, setSubmissionError] = useState("");
@@ -110,7 +116,6 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
   const activeAmbientAudioUrl = isGalleryTheme ? configuredAmbientAudioUrl : hideOverlayScript ? "" : configuredAmbientAudioUrl;
   const narrationBackgroundAudioUrl =
     !isGalleryTheme && !hideOverlayScript ? galleryTheme?.ambientAudioUrl || activeAmbientAudioUrl : "";
-  const currentQuote = galleryQuotes[galleryIndex] ?? fallbackQuotes[0];
   const showGalleryPlayer = isGalleryTheme && Boolean(galleryLoopSegment?.mediaUrl || activeAmbientAudioUrl);
   const shouldUseNarrationBackgroundPlayer =
     !isGalleryTheme &&
@@ -122,6 +127,13 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
     () => activePrompts.map((prompt) => prompt.text?.trim()).filter(Boolean).join("\n\n"),
     [activePrompts],
   );
+  const visibleGalleryQuotes = useMemo(
+    () => galleryQuotes.slice(galleryBatchStart, galleryBatchStart + GALLERY_BATCH_SIZE),
+    [galleryBatchStart, galleryQuotes],
+  );
+  const meditationCopy = sessionComplete
+    ? "The two-minute practice is complete. Let the quiet settle for a moment, and carry only what feels gentle enough to keep."
+    : combinedNarrationText || theme.description;
 
   useEffect(() => {
     if (!isGalleryTheme) {
@@ -169,21 +181,6 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
       active = false;
     };
   }, [fallbackQuotes, isGalleryTheme]);
-
-  useEffect(() => {
-    if (!started || !isGalleryTheme || galleryQuotes.length <= 1) {
-      return undefined;
-    }
-
-    const intervalId = window.setInterval(() => {
-      setGalleryIndex((prev) => (prev + 1) % galleryQuotes.length);
-      setFadeKey((prev) => prev + 1);
-    }, 7000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [galleryQuotes.length, isGalleryTheme, started]);
 
   useEffect(() => {
     if (!isGalleryTheme || !galleryMediaRef.current || (!galleryLoopSegment?.mediaUrl && !activeAmbientAudioUrl)) {
@@ -354,6 +351,25 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
     showNarrationBackgroundPlayer,
   ]);
 
+  useEffect(() => {
+    if (!started || isGalleryTheme || hideOverlayScript) {
+      return undefined;
+    }
+
+    setSessionComplete(false)
+
+    const timer = window.setTimeout(() => {
+      setSessionComplete(true);
+      narrationRequestRef.current += 1;
+      stopVoiceover();
+      setFadeKey((prev) => prev + 1);
+    }, SESSION_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [hideOverlayScript, isGalleryTheme, sessionRunId, started, stopVoiceover]);
+
   const fetchNarrationUrl = useCallback(async ({ text, voiceInstructions }) => {
     const cacheKey = `${destination.slug}:${theme.slug}:${text}:${voiceInstructions || ""}`;
     const cachedUrl = narrationCacheRef.current.get(cacheKey);
@@ -414,6 +430,8 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
   const startExperience = () => {
     setStarted(true);
     setVideoEnded(false);
+    setSessionComplete(false);
+    setSessionRunId((prev) => prev + 1);
     if (!isGalleryTheme && !shouldUseNarrationBackgroundPlayer) {
       playAmbient(activeAmbientAudioUrl);
     }
@@ -424,6 +442,8 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
   };
 
   const handleReplayNarration = () => {
+    setSessionComplete(false);
+    setSessionRunId((prev) => prev + 1);
     narrationRequestRef.current += 1;
     stopVoiceover();
     startContinuousNarration();
@@ -475,6 +495,18 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
 
     setSubmissionState("saved");
     setSubmissionText("");
+  };
+
+  const handleNextGalleryBatch = () => {
+    if (galleryQuotes.length <= GALLERY_BATCH_SIZE) {
+      return;
+    }
+
+    setGalleryBatchStart((current) => {
+      const nextStart = current + GALLERY_BATCH_SIZE;
+      return nextStart >= galleryQuotes.length ? 0 : nextStart;
+    });
+    setFadeKey((prev) => prev + 1);
   };
 
   const showSubmissionCard =
@@ -560,6 +592,16 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
           <button className="gentle-btn" onClick={startExperience}>
             Begin
           </button>
+
+          <div style={{ marginTop: "18px" }}>
+            <button
+              type="button"
+              className="back-link"
+              onClick={() => navigate(`/destination/${destination.slug}`)}
+            >
+              Exit reflection
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -652,20 +694,25 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
           position: "absolute",
           inset: 0,
           display: "flex",
-          alignItems: "center",
+          alignItems: isGalleryTheme ? "center" : "flex-start",
           justifyContent: "center",
           zIndex: 10,
-          pointerEvents: "none",
-          padding: "96px 20px 36px",
+          pointerEvents: "auto",
+          padding: isGalleryTheme ? "96px 20px 36px" : "104px 20px 44px",
+          overflowY: "auto",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
         }}
       >
         {!isGalleryTheme && !hideOverlayScript && (
           <div
             style={{
               maxWidth: "560px",
+              width: "100%",
               textAlign: "center",
               padding: "0 24px",
               pointerEvents: "auto",
+              margin: "0 auto",
             }}
           >
             <div
@@ -697,6 +744,35 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
             </p>
 
             <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "12px",
+                flexWrap: "wrap",
+                marginBottom: "28px",
+              }}
+            >
+              <button className="gentle-btn" onClick={handleReplayNarration}>
+                ↻ Replay narration
+              </button>
+              <button
+                className="gentle-btn"
+                onClick={() =>
+                  navigate("/journal", {
+                    state: {
+                      destinationSlug: destination.slug,
+                      themeSlug: theme.slug,
+                      title: `${destination.name} · ${theme.name}`,
+                      content: combinedNarrationText,
+                    },
+                  })
+                }
+              >
+                ✎ Write in journal
+              </button>
+            </div>
+
+            <div
               key={fadeKey}
               style={{
                 fontSize: "clamp(20px, 3.4vw, 28px)",
@@ -708,7 +784,7 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
                 whiteSpace: "pre-line",
               }}
             >
-              {combinedNarrationText || theme.description}
+              {meditationCopy}
             </div>
 
             <p
@@ -719,15 +795,22 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
                 color: "rgba(255,255,255,0.38)",
               }}
             >
-              {voiceoverPlaying ? "Meditation narration is playing." : "Meditation narration is ready to replay."}
+              {sessionComplete
+                ? "This two-minute meditation has finished."
+                : voiceoverPlaying
+                  ? "Meditation narration is playing. This reflection lasts 2 minutes."
+                  : "Meditation narration is ready to replay. This reflection lasts 2 minutes."}
             </p>
 
             <div style={{ display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
-              <button className="gentle-btn" onClick={handleReplayNarration}>
-                Replay narration
-              </button>
               <button className="gentle-btn" onClick={handleReturnToThemes}>
-                Return to Themes
+                ↩ Return to Themes
+              </button>
+            </div>
+
+            <div style={{ marginTop: "18px" }}>
+              <button type="button" className="back-link" onClick={handleReturnToThemes}>
+                ← Exit reflection
               </button>
             </div>
 
@@ -748,55 +831,107 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
         {isGalleryTheme && (
           <div
             style={{
-              width: "min(620px, 100%)",
-              maxHeight: "calc(100vh - 150px)",
-              padding: "32px 24px",
-              borderRadius: "28px",
-              background: "linear-gradient(160deg, rgba(255,248,240,0.12) 0%, rgba(255,255,255,0.04) 100%)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              backdropFilter: "blur(18px)",
-              boxShadow: "0 30px 80px rgba(0,0,0,0.28)",
-              textAlign: "center",
+              width: "min(1180px, 100%)",
+              maxHeight: "calc(100vh - 140px)",
+              padding: "12px 8px 28px",
               pointerEvents: "auto",
               animation: "fadeIn 0.8s ease",
               overflow: "auto",
             }}
           >
-            <p className="label-upper" style={{ marginBottom: "16px", color: "rgba(255,255,255,0.38)" }}>
-              Shared by upperclassmen
-            </p>
+            <div style={{ textAlign: "center", marginBottom: "28px" }}>
+              <p className="label-upper" style={{ marginBottom: "14px", color: "rgba(255,255,255,0.34)" }}>
+                Shared by upperclassmen
+              </p>
+              <h2
+                style={{
+                  fontSize: "clamp(30px, 4.6vw, 48px)",
+                  fontStyle: "italic",
+                  fontWeight: 400,
+                  color: "rgba(255,248,240,0.92)",
+                  marginBottom: "10px",
+                }}
+              >
+                The blackboard of lantern notes
+              </h2>
+              <p
+                style={{
+                  maxWidth: "620px",
+                  margin: "0 auto",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "14px",
+                  lineHeight: 1.8,
+                  color: "rgba(255,255,255,0.42)",
+                  textShadow: "0 2px 14px rgba(0,0,0,0.24)",
+                }}
+              >
+                Messages left behind by students who already crossed this part of the island. Read a few at a time, then pull down the next cluster.
+              </p>
+            </div>
 
-            <p
-              key={`${currentQuote?.id ?? "quote"}-${fadeKey}`}
+            <div
+              key={`gallery-batch-${galleryBatchStart}-${fadeKey}`}
               style={{
-                fontSize: "clamp(28px, 4.2vw, 42px)",
-                fontStyle: "italic",
-                color: "rgba(255,248,240,0.92)",
-                lineHeight: 1.55,
-                textShadow: "0 2px 20px rgba(0,0,0,0.35)",
-                minHeight: "5lh",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                maxWidth: "14ch",
-                margin: "0 auto",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: "26px 20px",
+                alignItems: "start",
+                padding: "6px 10px",
               }}
             >
-              "{currentQuote?.text}"
-            </p>
-
-            <p
-              style={{
-                marginTop: "20px",
-                fontFamily: "var(--font-sans)",
-                fontSize: "13px",
-                color: "rgba(255,255,255,0.42)",
-                letterSpacing: "1px",
-                textTransform: "uppercase",
-              }}
-            >
-              {galleryLoading ? "Loading quotes" : currentQuote?.attribution || "Shared by a student"}
-            </p>
+              {visibleGalleryQuotes.map((quote, index) => (
+                <article
+                  key={quote.id}
+                  style={{
+                    position: "relative",
+                    minHeight: "210px",
+                    padding: "22px 18px 18px",
+                    borderRadius: "14px",
+                    background: galleryNoteColors[index % galleryNoteColors.length],
+                    color: "#352714",
+                    boxShadow: "0 22px 34px rgba(0,0,0,0.24)",
+                    transform: galleryNoteRotations[index % galleryNoteRotations.length],
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "-8px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "999px",
+                      background: "#cc504a",
+                      boxShadow: "0 3px 7px rgba(0,0,0,0.18)",
+                    }}
+                  />
+                  <p
+                    style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: "15px",
+                      lineHeight: 1.8,
+                      color: "rgba(53,39,20,0.88)",
+                      whiteSpace: "pre-line",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    "{quote.text}"
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: "11px",
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "rgba(53,39,20,0.56)",
+                    }}
+                  >
+                    {galleryLoading ? "Loading notes" : quote.attribution || "Shared by a student"}
+                  </p>
+                </article>
+              ))}
+            </div>
 
             {showGalleryPlayer && (
               <div style={{ marginTop: "24px" }}>
@@ -834,41 +969,21 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
               </div>
             )}
 
-            {galleryQuotes.length > 1 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "8px",
-                  marginTop: "32px",
-                  flexWrap: "wrap",
-                }}
-              >
-                {galleryQuotes.map((quote, index) => (
-                  <button
-                    key={quote.id}
-                    type="button"
-                    onClick={() => {
-                      setGalleryIndex(index);
-                      setFadeKey((prev) => prev + 1);
-                    }}
-                    style={{
-                      width: index === galleryIndex ? "28px" : "8px",
-                      height: "8px",
-                      borderRadius: "999px",
-                      border: "none",
-                      padding: 0,
-                      background:
-                        index === galleryIndex ? "rgba(255,248,240,0.7)" : "rgba(255,255,255,0.16)",
-                      transition: "all 0.3s ease",
-                      cursor: "pointer",
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-
-            <div style={{ marginTop: "36px" }}>
+            <div
+              style={{
+                marginTop: "28px",
+                display: "flex",
+                justifyContent: "center",
+                gap: "12px",
+                flexWrap: "wrap",
+                paddingBottom: "8px",
+              }}
+            >
+              {galleryQuotes.length > GALLERY_BATCH_SIZE && (
+                <button className="gentle-btn" onClick={handleNextGalleryBatch}>
+                  Show next notes
+                </button>
+              )}
               <button className="gentle-btn" onClick={handleReturnToThemes}>
                 Back to Island
               </button>

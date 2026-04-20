@@ -34,16 +34,16 @@ const islands = [
 
 const steps = [
   {
-    title: "Choose an island",
-    text: "Start in the place that matches your mood. Ocean, Sky, and Forest each shape the reflection differently.",
+    title: "Begin the crossing",
+    text: "The story opens at the shore. Choose the island path that feels closest to what you are carrying tonight.",
   },
   {
-    title: "Listen and settle",
-    text: "Guided narration and a soft background atmosphere help the experience feel more like a meditation than a task.",
+    title: "Follow the guide",
+    text: "Each chapter is narrated like a quiet quest, with atmosphere, movement, and a feeling that you are being led somewhere real.",
   },
   {
-    title: "Return lighter",
-    text: "When you are ready, leave the island and come back whenever you need another quiet place to land.",
+    title: "Leave with a lantern",
+    text: "When the path ends, you return to the island changed a little, and you can come back whenever the story needs to continue.",
   },
 ];
 
@@ -317,8 +317,8 @@ export default function Welcome() {
               animation: "fadeIn 1.2s ease",
             }}
           >
-            A guided imagination space for freshmen to breathe, reset, and find their way back to
-            themselves.
+            A story-driven island for freshmen to wander through grief, homesickness, and overwhelm
+            one guided chapter at a time.
           </p>
 
           <div
@@ -428,7 +428,7 @@ export default function Welcome() {
             }}
           >
             Each island holds a different world, shaped by its terrain, sounds, and light, but all
-            of them are designed to help you return to yourself.
+            of them now feel like chapters in the same nighttime journey.
           </p>
 
           <div
@@ -597,9 +597,10 @@ export default function Welcome() {
               <div style={{ fontSize: "0.875rem", color: "rgba(180,205,230,0.42)", lineHeight: 2 }}>
                 <p style={{ marginBottom: "18px" }}>
                   Stranded is a guided imagination tool built for the freshman experience, the
-                  overwhelm, the longing, and the searching.
+                  overwhelm, the longing, and the searching, but told more like a playable fable
+                  than a utility.
                 </p>
-                <p>Pick an island. Follow a prompt. Breathe. Then return with a little more room.</p>
+                <p>Pick an island. Enter a chapter. Follow the voice. Return with a little more room.</p>
               </div>
             </div>
 

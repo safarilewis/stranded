@@ -34,9 +34,14 @@ export default function AccountBar() {
       >
         Signed in as {user.email}
       </p>
-      <button type="button" className="back-link" onClick={handleSignOut}>
-        Sign out
-      </button>
+      <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
+        <button type="button" className="back-link" onClick={() => navigate("/journal")}>
+          Journal
+        </button>
+        <button type="button" className="back-link" onClick={handleSignOut}>
+          Sign out
+        </button>
+      </div>
     </div>
   );
 }

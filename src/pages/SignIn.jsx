@@ -42,7 +42,7 @@ export default function SignIn() {
       return;
     }
 
-    navigate(redirectTo, { replace: true });
+    navigate("/arrival", { replace: true, state: { continueTo: redirectTo } });
   };
 
   return (

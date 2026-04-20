@@ -19,6 +19,8 @@ export default function ThemePage() {
   }
 
   const availableThemes = THEMES.filter((theme) => destination.themeMedia?.[theme.slug]);
+  const destinationIntro =
+    destination.storyHook || "Every part of the island holds a different kind of answer.";
 
   return (
     <div
@@ -51,7 +53,7 @@ export default function ThemePage() {
 
         <div style={{ textAlign: "center", marginBottom: "56px", animation: "fadeIn 0.8s ease" }}>
           <p className="label-upper" style={{ marginBottom: "16px" }}>
-            {destination.name}
+            {destination.storyTitle || destination.name}
           </p>
           <h1
             style={{
@@ -63,6 +65,19 @@ export default function ThemePage() {
           >
             What are you carrying right now?
           </h1>
+          <p
+            style={{
+              marginTop: "16px",
+              maxWidth: "680px",
+              marginInline: "auto",
+              fontSize: "16px",
+              color: "rgba(255,255,255,0.52)",
+              lineHeight: 1.8,
+              fontFamily: "var(--font-sans)",
+            }}
+          >
+            {destinationIntro}
+          </p>
           <p
             style={{
               marginTop: "18px",
@@ -88,7 +103,7 @@ export default function ThemePage() {
             <button
               key={theme.slug}
               type="button"
-              onClick={() => navigate(`/destination/${destination.slug}/${theme.slug}`)}
+              onClick={() => navigate(`/transition/${destination.slug}/${theme.slug}`)}
               style={{
                 background: "linear-gradient(135deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.03) 100%)",
                 backdropFilter: "blur(12px)",
@@ -122,6 +137,18 @@ export default function ThemePage() {
                 }}
               >
                 {theme.tagline}
+              </p>
+              <p
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "12px",
+                  letterSpacing: "0.9px",
+                  textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.34)",
+                  marginBottom: "14px",
+                }}
+              >
+                {destination.themeMedia?.[theme.slug]?.introLine || theme.storyPrompt || "A story path opens here."}
               </p>
               <p
                 style={{

@@ -11,6 +11,7 @@ import { supabase, supabaseConfigured } from "../lib/supabase";
 const BACKGROUND_MEDIA_VOLUME = 0.16;
 const GALLERY_BATCH_SIZE = 6;
 const SESSION_DURATION_MS = 2 * 60 * 1000;
+const JOURNAL_REDIRECT_DELAY_MS = 1200;
 const galleryNoteRotations = ["rotate(-1.8deg)", "rotate(1.3deg)", "rotate(-0.9deg)", "rotate(1.7deg)", "rotate(-1.1deg)", "rotate(0.8deg)"];
 const galleryNoteColors = ["#f5e8bf", "#efddb5", "#f0e4c8", "#edd5a8", "#f2e9cf", "#e9d7b2"];
 
@@ -20,6 +21,45 @@ function buildFallbackQuotes(voices) {
     text: voice.text,
     attribution: voice.attribution,
   }));
+}
+
+function describeDestinationScene(destinationName) {
+  const normalized = destinationName.trim().toLowerCase();
+
+  if (normalized === "ocean") {
+    return "Imagine you are standing at the edge of a calm ocean.";
+  }
+
+  if (normalized === "sky") {
+    return "Imagine you are lifting gently into an open sky.";
+  }
+
+  if (normalized === "forest") {
+    return "Imagine you are standing beneath quiet trees in a steady forest.";
+  }
+
+  if (normalized === "space") {
+    return "Imagine you are floating in the stillness of space.";
+  }
+
+  return `Imagine you are stepping into ${destinationName}.`;
+}
+
+function buildGuidedNarrationText({ destinationName, prompts, themeDescription }) {
+  const promptLines = prompts.map((prompt) => prompt.text?.trim()).filter(Boolean);
+
+  if (promptLines.length === 0) {
+    return themeDescription || "";
+  }
+
+  const introLines = [
+    "Close your eyes.",
+    "Take a slow breath in.",
+    "And let it go gently.",
+    describeDestinationScene(destinationName),
+  ];
+
+  return [...introLines, ...promptLines].join("\n\n");
 }
 
 export default function DestinationPage() {
@@ -69,6 +109,7 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
   const [fadeKey, setFadeKey] = useState(0);
   const [videoEnded, setVideoEnded] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(SESSION_DURATION_MS / 1000);
   const [sessionRunId, setSessionRunId] = useState(0);
   const [galleryQuotes, setGalleryQuotes] = useState(() => buildFallbackQuotes(galleryDestination?.voices ?? []));
   const [galleryBatchStart, setGalleryBatchStart] = useState(0);
@@ -82,6 +123,7 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
   const narrationBackgroundMediaRef = useRef(null);
   const narrationCacheRef = useRef(new Map());
   const narrationRequestRef = useRef(0);
+  const playClosingGuidanceRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -123,6 +165,15 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
     Boolean(narrationBackgroundLoopSegment?.mediaUrl || narrationBackgroundAudioUrl);
   const showNarrationBackgroundPlayer =
     started && shouldUseNarrationBackgroundPlayer;
+  const guidedNarrationText = useMemo(
+    () =>
+      buildGuidedNarrationText({
+        destinationName: destination.name,
+        prompts: activePrompts,
+        themeDescription: theme.description,
+      }),
+    [activePrompts, destination.name, theme.description],
+  );
   const combinedNarrationText = useMemo(
     () => activePrompts.map((prompt) => prompt.text?.trim()).filter(Boolean).join("\n\n"),
     [activePrompts],
@@ -131,9 +182,19 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
     () => galleryQuotes.slice(galleryBatchStart, galleryBatchStart + GALLERY_BATCH_SIZE),
     [galleryBatchStart, galleryQuotes],
   );
+  const closingGuidanceText = useMemo(
+    () =>
+      [
+        "The practice is complete.",
+        "Slowly open your eyes.",
+        "Take one more easy breath.",
+        "When you are ready, move into your journal and write down what this space brought up for you.",
+      ].join("\n\n"),
+    [],
+  );
   const meditationCopy = sessionComplete
     ? "The two-minute practice is complete. Let the quiet settle for a moment, and carry only what feels gentle enough to keep."
-    : combinedNarrationText || theme.description;
+    : guidedNarrationText || theme.description;
 
   useEffect(() => {
     if (!isGalleryTheme) {
@@ -356,19 +417,35 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
       return undefined;
     }
 
-    setSessionComplete(false);
+    const resetTimer = window.setTimeout(() => {
+      setSessionComplete(false);
+      setTimeLeft(SESSION_DURATION_MS / 1000);
+    }, 0);
 
     const timer = window.setTimeout(() => {
       setSessionComplete(true);
-      narrationRequestRef.current += 1;
       stopVoiceover();
       setFadeKey((prev) => prev + 1);
+      playClosingGuidanceRef.current?.();
     }, SESSION_DURATION_MS);
 
     return () => {
+      window.clearTimeout(resetTimer);
       window.clearTimeout(timer);
     };
   }, [hideOverlayScript, isGalleryTheme, sessionRunId, started, stopVoiceover]);
+
+  useEffect(() => {
+    if (!started || isGalleryTheme || hideOverlayScript || sessionComplete) {
+      return undefined;
+    }
+
+    const interval = window.setInterval(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [hideOverlayScript, isGalleryTheme, sessionComplete, sessionRunId, started]);
 
   const fetchNarrationUrl = useCallback(async ({ text, voiceInstructions }) => {
     const cacheKey = `${destination.slug}:${theme.slug}:${text}:${voiceInstructions || ""}`;
@@ -401,6 +478,18 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
     return objectUrl;
   }, [destination.name, destination.slug, theme.name, theme.slug]);
 
+  const navigateToJournal = useCallback(() => {
+    navigate("/journal", {
+      replace: true,
+      state: {
+        destinationSlug: destination.slug,
+        themeSlug: theme.slug,
+        title: `${destination.name} · ${theme.name}`,
+        content: guidedNarrationText,
+      },
+    });
+  }, [destination.name, destination.slug, guidedNarrationText, navigate, theme.name, theme.slug]);
+
   const startContinuousNarration = useCallback(() => {
     if (!combinedNarrationText) {
       return;
@@ -410,7 +499,7 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
     const requestId = ++narrationRequestRef.current;
 
     fetchNarrationUrl({
-      text: combinedNarrationText,
+      text: guidedNarrationText,
       voiceInstructions: activeVoiceInstructions,
     })
       .then((generatedUrl) => {
@@ -425,9 +514,50 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
           return;
         }
       });
-  }, [activeVoiceInstructions, combinedNarrationText, fetchNarrationUrl, playVoiceover]);
+  }, [activeVoiceInstructions, combinedNarrationText, fetchNarrationUrl, guidedNarrationText, playVoiceover]);
+
+  const playClosingGuidance = useCallback(() => {
+    const requestId = ++narrationRequestRef.current;
+
+    fetchNarrationUrl({
+      text: closingGuidanceText,
+      voiceInstructions: `${activeVoiceInstructions} End this meditation gently, slowly, and with extra spacious pauses.`,
+    })
+      .then((generatedUrl) => {
+        if (requestId !== narrationRequestRef.current) {
+          return;
+        }
+
+        playVoiceover(generatedUrl, () => {
+          if (requestId !== narrationRequestRef.current) {
+            return;
+          }
+
+          timeoutRef.current = window.setTimeout(() => {
+            navigateToJournal();
+          }, JOURNAL_REDIRECT_DELAY_MS);
+        });
+      })
+      .catch(() => {
+        if (requestId !== narrationRequestRef.current) {
+          return;
+        }
+
+        timeoutRef.current = window.setTimeout(() => {
+          navigateToJournal();
+        }, JOURNAL_REDIRECT_DELAY_MS);
+      });
+  }, [activeVoiceInstructions, closingGuidanceText, fetchNarrationUrl, navigateToJournal, playVoiceover]);
+
+  useEffect(() => {
+    playClosingGuidanceRef.current = playClosingGuidance;
+  }, [playClosingGuidance]);
 
   const startExperience = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     setStarted(true);
     setVideoEnded(false);
     setSessionComplete(false);
@@ -442,6 +572,10 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
   };
 
   const handleReplayNarration = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     setSessionComplete(false);
     setSessionRunId((prev) => prev + 1);
     narrationRequestRef.current += 1;
@@ -453,6 +587,7 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
     stopAll();
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
     narrationRequestRef.current += 1;
     navigate(isGalleryTheme ? "/map" : `/destination/${destination.slug}`);
@@ -757,16 +892,7 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
               </button>
               <button
                 className="gentle-btn"
-                onClick={() =>
-                  navigate("/journal", {
-                    state: {
-                      destinationSlug: destination.slug,
-                      themeSlug: theme.slug,
-                      title: `${destination.name} · ${theme.name}`,
-                      content: combinedNarrationText,
-                    },
-                  })
-                }
+                onClick={navigateToJournal}
               >
                 ✎ Write in journal
               </button>
@@ -800,6 +926,11 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
                 : voiceoverPlaying
                   ? "Meditation narration is playing. This reflection lasts 2 minutes."
                   : "Meditation narration is ready to replay. This reflection lasts 2 minutes."}
+              {!sessionComplete && (
+                <span style={{ marginLeft: "10px", fontVariantNumeric: "tabular-nums" }}>
+                  ({String(Math.floor(timeLeft / 60)).padStart(2, "0")}:{String(timeLeft % 60).padStart(2, "0")})
+                </span>
+              )}
             </p>
 
             <div style={{ display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>

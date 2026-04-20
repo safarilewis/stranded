@@ -39,6 +39,30 @@ export const DESTINATIONS = [
           { text: "Breathe in. Let the ocean hold what feels too heavy to name.", voiceoverUrl: "" },
         ],
       },
+      stress: {
+        introLine: "The tide gate opens when everything feels like too much to carry at once.",
+        voiceInstructions:
+          "Sound calming and steady here, like someone helping a person slow down near moving water.",
+        prompts: [
+          { text: "Stress can feel like a wave that keeps arriving before you have caught your breath.", voiceoverUrl: "" },
+          { text: "Stand at the shoreline and let each thought come in one at a time.", voiceoverUrl: "" },
+          { text: "You do not have to solve the whole sea tonight.", voiceoverUrl: "" },
+          { text: "Choose one worry and let the tide pull it a little farther from your body.", voiceoverUrl: "" },
+          { text: "Stay with the rhythm until your breath remembers a slower pace.", voiceoverUrl: "" },
+        ],
+      },
+      "peer-pressure": {
+        introLine: "The tide gate opens when other people's expectations are louder than your own voice.",
+        voiceInstructions:
+          "Sound reassuring and clear here, with a gentle confidence that helps the listener return to themselves.",
+        prompts: [
+          { text: "Peer pressure can sound like waves insisting you must move with everyone else.", voiceoverUrl: "" },
+          { text: "But the shoreline keeps its own shape even when the water pushes against it.", voiceoverUrl: "" },
+          { text: "Notice what is yours beneath the noise, the value, the boundary, the quiet no.", voiceoverUrl: "" },
+          { text: "You are allowed to step back from what does not feel right in your chest.", voiceoverUrl: "" },
+          { text: "Let the tide return you to your own edge.", voiceoverUrl: "" },
+        ],
+      },
     },
   },
   {
@@ -69,6 +93,26 @@ export const DESTINATIONS = [
       homesickness: {
         introLine: "Some aches can only be understood once you rise above them.",
         videoUrl: "https://pub-11735088edf941b39e769dc13719a0a1.r2.dev/44123c8a-f098-4cbb-89b8-9d17a6540300.MP4",
+      },
+      stress: {
+        introLine: "The high passage opens when your mind is moving faster than your body can follow.",
+        prompts: [
+          { text: "Stress can pin you to the ground until everything feels urgent and close.", voiceoverUrl: "" },
+          { text: "Now imagine lifting above it, not to escape, but to see more clearly.", voiceoverUrl: "" },
+          { text: "From here, not every task deserves the same weight.", voiceoverUrl: "" },
+          { text: "Let the highest pressure shrink until it becomes only one part of a much bigger sky.", voiceoverUrl: "" },
+          { text: "You are allowed to come back down slower than you climbed up.", voiceoverUrl: "" },
+        ],
+      },
+      "peer-pressure": {
+        introLine: "The high passage opens when it feels like everyone else is choosing your direction for you.",
+        prompts: [
+          { text: "Peer pressure can make it feel dangerous to drift away from the flock.", voiceoverUrl: "" },
+          { text: "But from high above, you can see there is more than one current to follow.", voiceoverUrl: "" },
+          { text: "You do not have to fly where the loudest voices are pointing.", voiceoverUrl: "" },
+          { text: "Choose the path that leaves space inside your chest, not just approval around you.", voiceoverUrl: "" },
+          { text: "The sky is wide enough for your own direction.", voiceoverUrl: "" },
+        ],
       },
     },
   },
@@ -105,6 +149,85 @@ export const DESTINATIONS = [
           { text: "Picture each tree holding one memory that still belongs to you.", voiceoverUrl: "" },
           { text: "Home is not gone. It is part of what you carry.", voiceoverUrl: "" },
           { text: "Stand still long enough to feel that truth land.", voiceoverUrl: "" },
+        ],
+      },
+      stress: {
+        introLine: "The rooted hollow opens when your nerves need something steadier than momentum.",
+        prompts: [
+          { text: "Stress can scatter your attention until you no longer feel where your own body ends.", voiceoverUrl: "" },
+          { text: "Step deeper into the forest and feel the ground waiting for you without urgency.", voiceoverUrl: "" },
+          { text: "The trees do not rush to prove themselves. They simply keep standing.", voiceoverUrl: "" },
+          { text: "Let your shoulders lower by one small degree. Then another.", voiceoverUrl: "" },
+          { text: "Stay long enough for steadiness to sound familiar again.", voiceoverUrl: "" },
+        ],
+      },
+      "peer-pressure": {
+        introLine: "The rooted hollow opens when outside voices are trying to shape you too quickly.",
+        prompts: [
+          { text: "Peer pressure can feel like being bent in a direction that is not your own.", voiceoverUrl: "" },
+          { text: "But roots know how to hold their line underground where no one else can see.", voiceoverUrl: "" },
+          { text: "You do not need to become louder to stay true to yourself.", voiceoverUrl: "" },
+          { text: "Picture the trees around you guarding the space where your own choices begin.", voiceoverUrl: "" },
+          { text: "What is grounded in you does not need permission to remain.", voiceoverUrl: "" },
+        ],
+      },
+    },
+  },
+  {
+    slug: "space",
+    name: "Space",
+    emoji: "🪐",
+    tagline: "Float far enough to hear yourself again",
+    storyTitle: "Chapter IV · The Quiet Orbit",
+    storyHook: "When everything feels too loud and too close, the island opens a dark sky where distance becomes gentleness.",
+    color: "#5b5f9e",
+    bgGradient: "linear-gradient(180deg, #050816 0%, #111836 28%, #1f2854 58%, #4e5e95 82%, #d6defa 100%)",
+    particleType: "stars",
+    voiceInstructions:
+      "Use a slow, spacious, weightless voice, like someone guiding you through stillness beneath a night sky.",
+    videoUrl: "",
+    ambientAudioUrl: "",
+    isGallery: false,
+    prompts: [
+      { text: "You drift into a quiet stretch of space where everything finally grows wide enough to breathe.", voiceoverUrl: "" },
+      { text: "The noise below you softens into distance.", voiceoverUrl: "" },
+      { text: "There is no need to rush in a place that measures itself in stars.", voiceoverUrl: "" },
+      { text: "Let one tight thought loosen and float away from your chest.", voiceoverUrl: "" },
+      { text: "What remains is the part of you that still knows how to be still.", voiceoverUrl: "" },
+      { text: "Stay in orbit until your breath feels like your own again.", voiceoverUrl: "" },
+    ],
+    voices: [],
+    themeMedia: {
+      homesickness: {
+        introLine: "The quiet orbit opens when longing needs distance instead of pressure.",
+        voiceInstructions:
+          "Sound especially reassuring and spacious here, with long pauses and a softly anchoring tone.",
+        prompts: [
+          { text: "Homesickness can make every room feel smaller than it really is.", voiceoverUrl: "" },
+          { text: "Imagine rising above that ache until it becomes a constellation instead of a weight.", voiceoverUrl: "" },
+          { text: "You are allowed to miss what held you and still keep moving forward.", voiceoverUrl: "" },
+          { text: "Out here, your longing is not a flaw. It is proof that you have loved something deeply.", voiceoverUrl: "" },
+          { text: "Let the stars hold the parts that feel too far away tonight.", voiceoverUrl: "" },
+        ],
+      },
+      stress: {
+        introLine: "The quiet orbit opens when your thoughts are spinning too fast to rest.",
+        prompts: [
+          { text: "Stress can trap you in a tight orbit where the same worries keep circling.", voiceoverUrl: "" },
+          { text: "Now imagine the space around you widening until there is room between every thought.", voiceoverUrl: "" },
+          { text: "You do not have to chase each one as it passes.", voiceoverUrl: "" },
+          { text: "Let the pressure lose gravity little by little.", voiceoverUrl: "" },
+          { text: "Stay in the stillness until your mind stops bracing for impact.", voiceoverUrl: "" },
+        ],
+      },
+      "peer-pressure": {
+        introLine: "The quiet orbit opens when other people's expectations feel impossible to escape.",
+        prompts: [
+          { text: "Peer pressure can make it feel like every voice is pulling you into its own gravity.", voiceoverUrl: "" },
+          { text: "But not every force deserves to keep you in orbit.", voiceoverUrl: "" },
+          { text: "Out here, you can tell the difference between influence and truth.", voiceoverUrl: "" },
+          { text: "Picture yourself drifting just far enough to hear your own answer more clearly than theirs.", voiceoverUrl: "" },
+          { text: "You are allowed to choose a path that belongs only to you.", voiceoverUrl: "" },
         ],
       },
     },
@@ -145,6 +268,24 @@ export const THEMES = [
     tagline: "Feel held while missing home",
     description: "A gentler space for the ache of missing what is familiar.",
     storyPrompt: "Tonight's quest asks you to cross the island while carrying the shape of home.",
+    ambientAudioUrl: "https://cdn.pixabay.com/download/audio/2022/10/24/audio_946efc1b85.mp3?filename=ambient-meditation-118429.mp3",
+  },
+  {
+    slug: "stress",
+    name: "Stress",
+    emoji: "⏳",
+    tagline: "Slow the pressure down",
+    description: "A steadier space for the weight of deadlines, urgency, and too much at once.",
+    storyPrompt: "Tonight's quest asks you to loosen the knot of pressure without needing to solve everything at once.",
+    ambientAudioUrl: "https://cdn.pixabay.com/download/audio/2022/10/24/audio_946efc1b85.mp3?filename=ambient-meditation-118429.mp3",
+  },
+  {
+    slug: "peer-pressure",
+    name: "Peer Pressure",
+    emoji: "🧭",
+    tagline: "Return to your own direction",
+    description: "A clearer space for outside expectations, comparison, and the pressure to fit.",
+    storyPrompt: "Tonight's quest asks you to hear your own inner compass more clearly than the crowd around you.",
     ambientAudioUrl: "https://cdn.pixabay.com/download/audio/2022/10/24/audio_946efc1b85.mp3?filename=ambient-meditation-118429.mp3",
   },
   {

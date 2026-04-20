@@ -38,6 +38,12 @@ const stampPalette = {
     sky: "#eef8e1",
     haze: "radial-gradient(circle at 50% 40%, rgba(178, 223, 153, 0.28) 0%, rgba(178, 223, 153, 0) 76%)",
   },
+  space: {
+    glow: "rgba(160, 154, 255, 0.28)",
+    accent: "#c8c2ff",
+    sky: "#f0eeff",
+    haze: "radial-gradient(circle at 50% 42%, rgba(173, 168, 255, 0.30) 0%, rgba(173, 168, 255, 0) 76%)",
+  },
   gallery: {
     glow: "rgba(238, 191, 139, 0.26)",
     accent: "#ffd9aa",
@@ -48,9 +54,10 @@ const stampPalette = {
 
 const mapNodes = {
   ocean: { left: "18%", top: "42%", delay: "0.02s" },
-  sky: { left: "46%", top: "18%", delay: "0.10s" },
-  forest: { left: "72%", top: "39%", delay: "0.18s" },
-  gallery: { left: "50%", top: "61%", delay: "0.26s" },
+  sky: { left: "46%", top: "23%", delay: "0.10s" },
+  forest: { left: "76%", top: "38%", delay: "0.18s" },
+  space: { left: "24%", top: "66%", delay: "0.26s" },
+  gallery: { left: "56%", top: "70%", delay: "0.34s" },
 };
 
 export default function MapPage() {
@@ -195,7 +202,7 @@ export default function MapPage() {
 
             <h1
               style={{
-                fontSize: "clamp(50px, 10vw, 100px)",
+                fontSize: "clamp(32px, 5vw, 62px)",
                 lineHeight: 0.96,
                 fontWeight: 400,
                 color: "rgba(248, 250, 253, 0.98)",
@@ -288,7 +295,7 @@ export default function MapPage() {
               </p>
               <h2
                 style={{
-                  fontSize: "clamp(52px, 8vw, 88px)",
+                  fontSize: "clamp(34px, 5vw, 62px)",
                   fontStyle: "italic",
                   fontWeight: 400,
                   lineHeight: 0.98,
@@ -347,21 +354,40 @@ export default function MapPage() {
                   stroke="rgba(201,225,244,0.20)"
                   strokeWidth="2"
                   strokeDasharray="10 12"
-                />
+                >
+                  <animate attributeName="strokeDashoffset" from="0" to="-22" dur="5s" repeatCount="indefinite" />
+                  <animate attributeName="strokeOpacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite" />
+                </path>
                 <path
                   d="M250 470 C 330 545, 385 610, 470 660"
                   fill="none"
                   stroke="rgba(173,216,230,0.16)"
                   strokeWidth="2"
                   strokeDasharray="8 12"
-                />
+                >
+                  <animate attributeName="strokeDashoffset" from="0" to="-20" dur="6s" repeatCount="indefinite" />
+                  <animate attributeName="strokeOpacity" values="0.6;1;0.6" dur="4s" begin="1s" repeatCount="indefinite" />
+                </path>
                 <path
                   d="M590 390 C 655 440, 700 520, 520 720"
                   fill="none"
                   stroke="rgba(204,182,132,0.16)"
                   strokeWidth="2"
                   strokeDasharray="8 12"
-                />
+                >
+                  <animate attributeName="strokeDashoffset" from="0" to="-20" dur="7s" repeatCount="indefinite" />
+                  <animate attributeName="strokeOpacity" values="0.6;1;0.6" dur="3.5s" begin="0.5s" repeatCount="indefinite" />
+                </path>
+                <path
+                  d="M240 475 C 350 490, 460 502, 555 500"
+                  fill="none"
+                  stroke="rgba(160,154,255,0.18)"
+                  strokeWidth="2"
+                  strokeDasharray="8 12"
+                >
+                  <animate attributeName="strokeDashoffset" from="0" to="-20" dur="8s" repeatCount="indefinite" />
+                  <animate attributeName="strokeOpacity" values="0.6;1;0.6" dur="4.5s" begin="1.5s" repeatCount="indefinite" />
+                </path>
               </svg>
 
               {[0, 1, 2].map((index) => (
@@ -385,16 +411,14 @@ export default function MapPage() {
                 const palette = stampPalette[dest.slug] || stampPalette.ocean;
                 const node = compactLayout
                   ? {
-                      ocean: { left: "24%", top: "28%", delay: "0.02s" },
-                      sky: { left: "50%", top: "8%", delay: "0.10s" },
-                      forest: { left: "72%", top: "30%", delay: "0.18s" },
-                      gallery: { left: "50%", top: "54%", delay: "0.26s" },
+                      ocean: { left: "22%", top: "24%", delay: "0.02s" },
+                      sky: { left: "50%", top: "18%", delay: "0.10s" },
+                      forest: { left: "76%", top: "26%", delay: "0.18s" },
+                      space: { left: "24%", top: "54%", delay: "0.26s" },
+                      gallery: { left: "56%", top: "58%", delay: "0.34s" },
                     }[dest.slug] || { left: "50%", top: "50%", delay: "0s" }
                   : mapNodes[dest.slug] || { left: "50%", top: "50%", delay: "0s" };
-                const isSky = dest.slug === "sky";
-                const isGallery = dest.slug === "gallery";
-                const innerCopyMaxWidth = isSky ? "68%" : "100%";
-                const bodyCopy = isGallery
+                const bodyCopy = dest.slug === "gallery"
                   ? "Words from those who've already been there."
                   : dest.storyHook;
 
@@ -408,7 +432,7 @@ export default function MapPage() {
                       left: node.left,
                       top: node.top,
                       transform: "translate(-50%, -50%)",
-                      width: isSky ? "clamp(240px, 23vw, 300px)" : isGallery ? "clamp(176px, 16vw, 210px)" : "clamp(184px, 17vw, 220px)",
+                      width: "clamp(190px, 18vw, 230px)",
                       padding: 0,
                       border: "none",
                       background: "transparent",
@@ -419,7 +443,7 @@ export default function MapPage() {
                     <div
                       style={{
                         position: "relative",
-                        minHeight: isSky ? "clamp(340px, 34vw, 410px)" : isGallery ? "188px" : "322px",
+                        minHeight: "340px",
                         borderRadius: "30px",
                         border: "1px solid rgba(231, 241, 249, 0.10)",
                         background:
@@ -452,15 +476,15 @@ export default function MapPage() {
                       <div
                         style={{
                           position: "absolute",
-                          inset: "14px 16px 16px 16px",
-                          padding: isSky ? "20px 18px 18px" : "18px 16px 16px",
+                          inset: "14px 16px 72px 16px",
+                          padding: "18px 16px 16px",
                           borderRadius: "22px",
                           border: "1px solid rgba(232,241,248,0.10)",
                           background: "linear-gradient(180deg, rgba(5,12,19,0.76) 0%, rgba(8,18,27,0.90) 100%)",
                           overflow: "hidden",
                         }}
                       >
-                        <div style={{ maxWidth: innerCopyMaxWidth }}>
+                        <div>
                           <p
                             style={{
                               fontFamily: "var(--font-sans)",
@@ -469,13 +493,16 @@ export default function MapPage() {
                               textTransform: "uppercase",
                               color: "rgba(214,230,241,0.56)",
                               marginBottom: "8px",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
                           >
                             {dest.storyTitle || "Open route"}
                           </p>
                           <h3
                             style={{
-                              fontSize: isSky ? "clamp(34px, 3.7vw, 46px)" : isGallery ? "clamp(22px, 2.2vw, 26px)" : "clamp(22px, 2.2vw, 28px)",
+                              fontSize: "clamp(20px, 2vw, 26px)",
                               fontWeight: 500,
                               color: "rgba(249,252,255,0.96)",
                               marginBottom: "8px",
@@ -486,7 +513,7 @@ export default function MapPage() {
                           <p
                             style={{
                               fontFamily: "var(--font-sans)",
-                              fontSize: isSky ? "14px" : "12px",
+                              fontSize: "12px",
                               lineHeight: 1.45,
                               color: "rgba(223,235,244,0.72)",
                               marginBottom: "12px",
@@ -497,21 +524,21 @@ export default function MapPage() {
                           <p
                             style={{
                               fontFamily: "var(--font-sans)",
-                              fontSize: isSky ? "13px" : "11px",
+                              fontSize: "11px",
                               lineHeight: 1.65,
                               color: "rgba(208,223,233,0.60)",
                               display: "-webkit-box",
                               WebkitBoxOrient: "vertical",
-                              WebkitLineClamp: isSky ? 5 : isGallery ? 3 : 4,
+                              WebkitLineClamp: 4,
                               overflow: "hidden",
                             }}
                           >
                             {bodyCopy}
                           </p>
-                          {!isGallery && (
+                          {dest.slug !== "gallery" && (
                             <p
                               style={{
-                                marginTop: isSky ? "16px" : "12px",
+                                marginTop: "12px",
                                 fontFamily: "var(--font-sans)",
                                 fontSize: "11px",
                                 letterSpacing: "0.14em",
@@ -529,10 +556,10 @@ export default function MapPage() {
                         style={{
                           position: "absolute",
                           left: "50%",
-                          top: isSky ? "24%" : dest.slug === "forest" ? "22%" : "24%",
+                          top: "24%",
                           transform: "translateX(-50%)",
-                          width: isSky ? "168px" : isGallery ? "126px" : "116px",
-                          height: isSky ? "168px" : isGallery ? "126px" : "116px",
+                          width: "116px",
+                          height: "116px",
                           borderRadius: "50%",
                           background: `radial-gradient(circle at 50% 35%, ${palette.glow} 0%, rgba(255,255,255,0) 70%)`,
                           filter: "blur(10px)",
@@ -543,9 +570,9 @@ export default function MapPage() {
                         style={{
                           position: "absolute",
                           right: "18px",
-                          top: isSky ? "22px" : "18px",
-                          width: isSky ? "64px" : "52px",
-                          height: isSky ? "64px" : "52px",
+                          top: "18px",
+                          width: "52px",
+                          height: "52px",
                           borderRadius: "50%",
                           border: `1px solid ${palette.accent}33`,
                           background: `radial-gradient(circle at 35% 35%, ${palette.sky} 0%, ${palette.accent} 42%, rgba(255,255,255,0) 78%)`,
@@ -557,10 +584,10 @@ export default function MapPage() {
                         style={{
                           position: "absolute",
                           left: "50%",
-                          bottom: isGallery ? "78px" : isSky ? "76px" : "64px",
+                          bottom: "14px",
                           transform: "translateX(-50%)",
-                          width: isSky ? "124px" : "108px",
-                          height: isSky ? "50px" : "44px",
+                          width: "108px",
+                          height: "44px",
                           borderRadius: "50%",
                           background: `radial-gradient(ellipse at center, ${palette.accent}66 0%, ${palette.accent}16 60%, rgba(255,255,255,0) 80%)`,
                           filter: "blur(12px)",
@@ -571,9 +598,9 @@ export default function MapPage() {
                         style={{
                           position: "absolute",
                           left: "50%",
-                          bottom: isGallery ? "72px" : isSky ? "70px" : "58px",
+                          bottom: "10px",
                           transform: "translateX(-50%)",
-                          fontSize: isSky ? "54px" : isGallery ? "50px" : "44px",
+                          fontSize: "40px",
                           lineHeight: 1,
                           filter: "drop-shadow(0 12px 18px rgba(0,0,0,0.32))",
                           animation: "driftUpSoft 8s ease-in-out infinite",
@@ -586,37 +613,6 @@ export default function MapPage() {
                 );
               })}
 
-              <button
-                type="button"
-                onClick={() => navigate("/transition/gallery/gallery")}
-                style={{
-                  position: "absolute",
-                  left: "50%",
-                  bottom: "24px",
-                  transform: "translateX(-50%)",
-                  width: "64px",
-                  height: "64px",
-                  borderRadius: "999px",
-                  border: "1px solid rgba(214, 225, 236, 0.16)",
-                  background: "rgba(255, 222, 178, 0.10)",
-                  color: "rgba(248, 238, 224, 0.88)",
-                  fontSize: "34px",
-                  lineHeight: 1,
-                  backdropFilter: "blur(12px)",
-                  boxShadow: "0 18px 40px rgba(0,0,0,0.24)",
-                  transition: "transform 0.3s ease, background 0.3s ease",
-                }}
-                onMouseEnter={(event) => {
-                  event.currentTarget.style.transform = "translateX(-50%) translateY(-5px)";
-                  event.currentTarget.style.background = "rgba(255, 222, 178, 0.16)";
-                }}
-                onMouseLeave={(event) => {
-                  event.currentTarget.style.transform = "translateX(-50%) translateY(0)";
-                  event.currentTarget.style.background = "rgba(255, 222, 178, 0.10)";
-                }}
-              >
-                ↓
-              </button>
             </div>
           </div>
         </section>

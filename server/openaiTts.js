@@ -54,9 +54,11 @@ export async function generateNarrationAudio({
   const instructionParts = [
     `Narrate this reflective prompt for ${destinationName} and ${themeName}.`,
     "Sound like a gentle meditation guide.",
-    "Speak noticeably slower than a normal conversation, softly and reassuringly, with spacious pauses between sentences.",
+    "Speak clearly and a little slower than before, with an unhurried pace that is easy to follow with eyes closed.",
+    "Leave soft, spacious pauses between sentences so the listener has time to imagine the scene.",
     "Keep the tone soothing, grounded, emotionally safe, and never theatrical.",
     voiceInstructions?.trim(),
+    "Do not rush any sentence.",
     "Do not add any words that are not in the prompt.",
   ].filter(Boolean);
 

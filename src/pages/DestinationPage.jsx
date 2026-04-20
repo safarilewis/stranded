@@ -356,7 +356,7 @@ function DestinationExperience({ destination, theme, galleryTheme, galleryDestin
       return undefined;
     }
 
-    setSessionComplete(false)
+    setSessionComplete(false);
 
     const timer = window.setTimeout(() => {
       setSessionComplete(true);

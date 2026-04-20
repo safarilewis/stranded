@@ -53,11 +53,11 @@ const stampPalette = {
 };
 
 const mapNodes = {
-  ocean: { left: "18%", top: "42%", delay: "0.02s" },
-  sky: { left: "46%", top: "23%", delay: "0.10s" },
-  forest: { left: "76%", top: "38%", delay: "0.18s" },
-  space: { left: "24%", top: "66%", delay: "0.26s" },
-  gallery: { left: "56%", top: "70%", delay: "0.34s" },
+  ocean:  { left: "12%", top: "40%", delay: "0.02s" },
+  sky:    { left: "50%", top: "20%", delay: "0.10s" },
+  forest: { left: "76%", top: "34%", delay: "0.18s" },
+  space:  { left: "36%", top: "68%", delay: "0.26s" },
+  gallery:{ left: "62%", top: "68%", delay: "0.34s" },
 };
 
 export default function MapPage() {
@@ -167,39 +167,6 @@ export default function MapPage() {
               zIndex: 2,
             }}
           >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "11px 18px",
-                borderRadius: "999px",
-                border: "1px solid rgba(188, 213, 230, 0.14)",
-                background: "rgba(255,255,255,0.03)",
-                marginBottom: "28px",
-              }}
-            >
-              <div
-                style={{
-                  width: "14px",
-                  height: "14px",
-                  borderRadius: "999px",
-                  background: "rgba(130, 179, 206, 0.82)",
-                  boxShadow: "0 0 18px rgba(130, 179, 206, 0.36)",
-                }}
-              />
-              <p
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "15px",
-                  letterSpacing: "0.02em",
-                  color: "rgba(217, 228, 236, 0.72)",
-                }}
-              >
-                Moonlit, unsettled
-              </p>
-            </div>
-
             <h1
               style={{
                 fontSize: "clamp(32px, 5vw, 62px)",
@@ -210,9 +177,9 @@ export default function MapPage() {
                 maxWidth: "820px",
               }}
             >
-              Choose tonight&apos;s
+              Where does your mind feel like going? 
               <br />
-              crossing.
+              
             </h1>
 
             <p
@@ -242,14 +209,14 @@ export default function MapPage() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "16px",
-                  padding: "22px 34px",
+                  gap: "10px",
+                  padding: "13px 22px",
                   borderRadius: "999px",
                   border: "1px solid rgba(214, 225, 236, 0.16)",
                   background: "rgba(255,255,255,0.05)",
                   color: "rgba(239, 245, 250, 0.88)",
                   fontFamily: "var(--font-sans)",
-                  fontSize: "18px",
+                  fontSize: "14px",
                   letterSpacing: "0.01em",
                   backdropFilter: "blur(12px)",
                   transition: "transform 0.3s ease, background 0.3s ease, border-color 0.3s ease",
@@ -265,7 +232,7 @@ export default function MapPage() {
                   event.currentTarget.style.borderColor = "rgba(214,225,236,0.16)";
                 }}
               >
-                <span style={{ fontSize: "34px", lineHeight: 1 }}>↓</span>
+                <span style={{ fontSize: "18px", lineHeight: 1 }}>↓</span>
                 <span>See the islands</span>
               </button>
 
@@ -321,7 +288,7 @@ export default function MapPage() {
             <div
               style={{
                 position: "relative",
-                minHeight: compactLayout ? "1080px" : "860px",
+                minHeight: compactLayout ? "1300px" : "1060px",
                 overflow: "hidden",
               }}
             >
@@ -348,8 +315,9 @@ export default function MapPage() {
                   opacity: 0.76,
                 }}
               >
+                {/* ocean → sky → forest */}
                 <path
-                  d="M220 440 C 300 360, 370 250, 470 190 S 615 315, 690 365"
+                  d="M120 402 C 260 310, 390 220, 500 211 S 710 280, 820 384"
                   fill="none"
                   stroke="rgba(201,225,244,0.20)"
                   strokeWidth="2"
@@ -358,8 +326,9 @@ export default function MapPage() {
                   <animate attributeName="strokeDashoffset" from="0" to="-22" dur="5s" repeatCount="indefinite" />
                   <animate attributeName="strokeOpacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite" />
                 </path>
+                {/* ocean → space */}
                 <path
-                  d="M250 470 C 330 545, 385 610, 470 660"
+                  d="M120 402 C 180 490, 280 560, 380 533"
                   fill="none"
                   stroke="rgba(173,216,230,0.16)"
                   strokeWidth="2"
@@ -368,8 +337,9 @@ export default function MapPage() {
                   <animate attributeName="strokeDashoffset" from="0" to="-20" dur="6s" repeatCount="indefinite" />
                   <animate attributeName="strokeOpacity" values="0.6;1;0.6" dur="4s" begin="1s" repeatCount="indefinite" />
                 </path>
+                {/* forest → gallery */}
                 <path
-                  d="M590 390 C 655 440, 700 520, 520 720"
+                  d="M820 384 C 780 440, 730 490, 620 533"
                   fill="none"
                   stroke="rgba(204,182,132,0.16)"
                   strokeWidth="2"
@@ -378,8 +348,9 @@ export default function MapPage() {
                   <animate attributeName="strokeDashoffset" from="0" to="-20" dur="7s" repeatCount="indefinite" />
                   <animate attributeName="strokeOpacity" values="0.6;1;0.6" dur="3.5s" begin="0.5s" repeatCount="indefinite" />
                 </path>
+                {/* space → gallery */}
                 <path
-                  d="M240 475 C 350 490, 460 502, 555 500"
+                  d="M380 533 C 460 528, 540 528, 620 533"
                   fill="none"
                   stroke="rgba(160,154,255,0.18)"
                   strokeWidth="2"
@@ -411,11 +382,11 @@ export default function MapPage() {
                 const palette = stampPalette[dest.slug] || stampPalette.ocean;
                 const node = compactLayout
                   ? {
-                      ocean: { left: "22%", top: "24%", delay: "0.02s" },
-                      sky: { left: "50%", top: "18%", delay: "0.10s" },
-                      forest: { left: "76%", top: "26%", delay: "0.18s" },
-                      space: { left: "24%", top: "54%", delay: "0.26s" },
-                      gallery: { left: "56%", top: "58%", delay: "0.34s" },
+                      ocean:  { left: "20%", top: "42%", delay: "0.02s" },
+                      sky:    { left: "50%", top: "16%", delay: "0.10s" },
+                      forest: { left: "74%", top: "36%", delay: "0.18s" },
+                      space:  { left: "28%", top: "70%", delay: "0.26s" },
+                      gallery:{ left: "72%", top: "70%", delay: "0.34s" },
                     }[dest.slug] || { left: "50%", top: "50%", delay: "0s" }
                   : mapNodes[dest.slug] || { left: "50%", top: "50%", delay: "0s" };
                 const bodyCopy = dest.slug === "gallery"

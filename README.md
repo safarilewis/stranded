@@ -181,11 +181,3 @@ Response (shape):
 - For production AI endpoints, deploy with serverless function support and set OpenAI env vars.
 - Ensure Supabase project credentials and DB schema are provisioned before launch.
 
-## Known behavior and fallbacks
-- Without Supabase config:
-  - authentication pages remain accessible
-  - protected routes redirect to sign-in
-  - journal storage uses localStorage fallback (user-scoped client-side)
-- Without OpenAI config:
-  - narration endpoint returns configuration errors
-  - journal analysis falls back to deterministic local keyword heuristics
